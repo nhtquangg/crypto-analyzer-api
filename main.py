@@ -28,7 +28,7 @@ class GTICriteriaModel(BaseModel):
     trend_condition_met: bool = Field(..., description="Điều kiện trend của hệ thống GTI")
     price_above_ema10: bool = Field(..., description="Giá có trên EMA10")
     price_above_ema20: bool = Field(..., description="Giá có trên EMA20")
-    ema10_below_ema20: bool = Field(..., description="EMA10 có dưới EMA20")
+    ema10_above_ema20: bool = Field(..., description="EMA10 có trên EMA20 (uptrend)")
     volume_breakout_on_latest_candle: bool = Field(..., description="Có breakout volume không")
     pullback_to_ema10: bool = Field(..., description="Có pullback về EMA10")
     pullback_to_ema20: bool = Field(..., description="Có pullback về EMA20")
@@ -199,12 +199,12 @@ def analyze_data(candle_data: list, timeframe: str):
         # Kiểm tra trend condition chỉ khi có đủ EMA data
         if ema10_val is not None and ema20_val is not None:
             price_above_emas = latest_price > ema10_val and latest_price > ema20_val
-            gti_trend_condition = (ema10_val < ema20_val) and price_above_emas
+            gti_trend_condition = (ema10_val > ema20_val) and price_above_emas
             gti_results.update({
                 "trend_condition_met": bool(gti_trend_condition),
                 "price_above_ema10": bool(latest_price > ema10_val),
                 "price_above_ema20": bool(latest_price > ema20_val),
-                "ema10_below_ema20": bool(ema10_val < ema20_val)
+                "ema10_above_ema20": bool(ema10_val > ema20_val)
             })
         else:
             gti_results.update({
@@ -256,7 +256,7 @@ def analyze_data(candle_data: list, timeframe: str):
                 "volume_breakout_on_latest_candle": bool(volume_breakout),
                 "pullback_to_ema10": bool(is_pullback_to_ema10),
                 "pullback_to_ema20": bool(is_pullback_to_ema20),
-                "note": "Trend condition based on GTI doc (EMA10 < EMA20). A typical uptrend is EMA10 > EMA20."
+                "note": "Trend condition: EMA10 > EMA20 (uptrend) + price above both EMAs"
             },
             "ohlc_data": ohlc_data,
             "data_quality": {
