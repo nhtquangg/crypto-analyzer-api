@@ -81,6 +81,22 @@ def analyze_data(candle_data: list):
 
         latest_price = df['close'].iloc[-1]
         latest_volume = df['volume'].iloc[-1]
+        
+        # Lấy 100 nến gần nhất cho OHLC data
+        ohlc_count = min(100, len(df))
+        recent_df = df.tail(ohlc_count).copy()
+        
+        # Tạo dữ liệu OHLC
+        ohlc_data = []
+        for _, row in recent_df.iterrows():
+            ohlc_data.append({
+                "timestamp": int(row['timestamp']),
+                "open": float(row['open']),
+                "high": float(row['high']),
+                "low": float(row['low']),
+                "close": float(row['close']),
+                "volume": float(row['volume'])
+            })
 
         result = {
             "latest_price": latest_price,
@@ -90,7 +106,9 @@ def analyze_data(candle_data: list):
             "macd_signal": macd_signal,
             "ma10": ma10,
             "ma20": ma20,
-            "ma50": ma50
+            "ma50": ma50,
+            "ohlc_data": ohlc_data,
+            "candle_count": len(ohlc_data)
         }
         
         logger.info(f"Analysis completed: {result}")
